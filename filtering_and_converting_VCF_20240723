@@ -5,7 +5,7 @@
 #$ -N test_job #job name
 #$ -pe smp 1 #set the processing environment and number of cores
 #$ -l h_vmem=1G #set the max memory needed. If the max is
-exceeded the job will abort
+exceeded the job will abort #do a test and then multiple and then guess how much time/memory you'll need 
 #$ -l mem_free=1G #set the amount of RAM necessary for the job
 to run
 #$ -l h_rt=1:0:0 #set hard runtime limit hh:mm:ss. Job will
@@ -14,8 +14,8 @@ abort once this limit is hit
 send a warning once this limit is hit
 #$ -cwd #execute job from current working directory
 #$ -j y #join stdout and stderr
-#$ -o $JOB_NAME_$JOB_ID.out #output log file
-#$ -e $JOB_NAME_$JOB_ID.err #output error file
+#$ -o $JOB_NAME_$JOB_ID.out #output log file #figure out how it stopped and where to start again; write into code; for results per chromosome, not until all are done; appending a file as results are made. Don't guess correctly, don't have nothing 
+#$ -e $JOB_NAME_$JOB_ID.err #output error file #report job stats --> write in here to pull info from scheduler; r code memory. memory before and after step to calculate how much it took. Dummy set, all of samples and then multiple by the number, but make sure full number of samples
 # Uncomment the below two if you want to receive email updates
 ##$ -M username@domain.com #email to recieve updates about job
 status
@@ -27,10 +27,10 @@ status
 # Define input and output directories
 input_dir="/data/SHSusers/MEGA/MEGA/MEGAimpute/for_epacts"
 output_dir="vcf/"
-sample_file="SHSph2_sample_ID_list_20240722CAS_no_space.txt"
+sample_file="SHSph2_sample_clean20240723CS.txt"
 
 # Loop over chromosomes
-for i in {1..22}; do
+for i in {1..22}; do #for i 1-2; 10-22; since 3-9 are not up yet #specific bash for test case
   echo "Processing chromosome ${i}..."
 
   # Input and output file paths
