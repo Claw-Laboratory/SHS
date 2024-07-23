@@ -39,7 +39,7 @@ done
 
 # Combine results
 # Create header
-head -n 1 gwas_results_chr1.assoc > gwas_combined_results.assoc
+head -n 1 gwas_results_chr1.assoc > gwas_combined_results.assoc #might need to change assoc to linear here; check output from chr19 test 
 
 # Append results
 for i in {1..22}; do
