@@ -2,7 +2,7 @@
 ####################################
 # Filtering vcf file by sample IDs #
 ####################################
-#$ -N test_job #job name
+#$ -N filter VCF #job name
 #$ -pe smp 1 #set the processing environment and number of cores
 #$ -l h_vmem=1G #set the max memory needed. If the max is
 exceeded the job will abort #do a test and then multiple and then guess how much time/memory you'll need 
@@ -17,10 +17,11 @@ send a warning once this limit is hit
 #$ -o $JOB_NAME_$JOB_ID.out #output log file #figure out how it stopped and where to start again; write into code; for results per chromosome, not until all are done; appending a file as results are made. Don't guess correctly, don't have nothing 
 #$ -e $JOB_NAME_$JOB_ID.err #output error file #report job stats --> write in here to pull info from scheduler; r code memory. memory before and after step to calculate how much it took. Dummy set, all of samples and then multiple by the number, but make sure full number of samples
 # Uncomment the below two if you want to receive email updates
-##$ -M username@domain.com #email to recieve updates about job
+#$ -M carissa.sherman@cuanschutz.edu #email to recieve updates about job
 status
-##$ -m ea #when to receive emails: begin (b), error (e), abort
+#$ -m bea #when to receive emails: begin (b), error (e), abort
 (a), suspend (s)
+
 #################################
 # COMMANDS FOR RUNNING THE JOB #
 #################################
@@ -30,7 +31,7 @@ output_dir="vcf/"
 sample_file="SHSph2_sample_clean20240723CS.txt"
 
 # Loop over chromosomes
-for i in {1..22}; do #for i 1-2; 10-22; since 3-9 are not up yet #specific bash for test case
+for i in {22}; do #for i 1-2; 10-22; since 3-9 are not up yet #specific bash for test case
   echo "Processing chromosome ${i}..."
 
   # Input and output file paths
@@ -47,10 +48,11 @@ for i in {1..22}; do #for i 1-2; 10-22; since 3-9 are not up yet #specific bash 
   mkdir -p "${output_dir}"
 
   # Filter the VCF file
+#NOHUP  
   bcftools view -S "${sample_file}" -Oz -o "${output_file}" "${input_file}" --force-samples
 
   echo "Completed chromosome ${i}."
 
   #Concert VCF to PLINK format
-  plink --vcf chr${i}_ph2_filtered.vcf --make-bed --out chr${i}_ph2
+  plink --vcf chr${i}_ph2_filtered.vcf --make-bed --out chr${i}_ph2_bed
 done
