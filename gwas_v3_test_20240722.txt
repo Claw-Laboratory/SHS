@@ -1,11 +1,30 @@
 #Filtering vcf file by sample IDs	
-#bcftools view -S clean_ph2s_samples.txt -Oz -o chr19_ph2_filtered.vcf chr19.filtered.epacts.vcf.gz --force-samples
-for i in {1..22}; do
-  bcftools view -S master/csherman/SHSph2_data/SHSph2_sample_ID_list_20240722CAS.txt -Oz -o master/csherman/SHSph2_data/vcf/chr${i}_ph2_filtered.vcf /data/SHSusers/MEGA/MEGA/MEGAimpute/for_epacts/chr${i}/chr${i}.filtered.epacts.vcf.gz --force-samples
-done
+# Define input and output directories
+input_dir="/data/SHSusers/MEGA/MEGA/MEGAimpute/for_epacts"
+output_dir="vcf/"
+sample_file="SHSph2_sample_ID_list_20240722CAS_no_space.txt"
 
+# Loop over chromosomes
 for i in {1..22}; do
-  bcftools view -S SHSph2_sample_ID_list_20240722CAS.txt -Oz -o ~/vcf/chr${i}_ph2_filtered.vcf /data/SHSusers/MEGA/MEGA/MEGAimpute/for_epacts/chr${i}/chr${i}.filtered.epacts.vcf.gz --force-samples
+  echo "Processing chromosome ${i}..."
+
+  # Input and output file paths
+  input_file="${input_dir}/chr${i}/chr${i}.filtered.epacts.vcf.gz"
+  output_file="${output_dir}/chr${i}_ph2_filtered.vcf"
+
+  # Check if input file exists
+  if [ ! -f "${input_file}" ]; then
+    echo "Input file ${input_file} does not exist. Skipping chromosome ${i}."
+    continue
+  fi
+
+  # Ensure output directory exists
+  mkdir -p "${output_dir}"
+
+  # Filter the VCF file
+  bcftools view -S "${sample_file}" -Oz -o "${output_file}" "${input_file}" --force-samples
+
+  echo "Completed chromosome ${i}."
 done
 
 #converting vcf to plink format
@@ -43,4 +62,4 @@ for i in {1..22}; do
 done
 
 #Bonferoni correction
-awk 'NR==1 || $9 < 0.05' gwas_combined_results.assoc > gwas_combined_results_sig_20240722.txt
+awk 'NR==1 || $9 < 0.00000005' gwas_combined_results.assoc > gwas_combined_results_sig_20240722.txt
