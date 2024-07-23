@@ -1,0 +1,46 @@
+#Filtering vcf file by sample IDs	
+#bcftools view -S clean_ph2s_samples.txt -Oz -o chr19_ph2_filtered.vcf chr19.filtered.epacts.vcf.gz --force-samples
+for i in {1..22}; do
+  bcftools view -S master/csherman/SHSph2_data/SHSph2_sample_ID_list_20240722CAS.txt -Oz -o master/csherman/SHSph2_data/vcf/chr${i}_ph2_filtered.vcf /data/SHSusers/MEGA/MEGA/MEGAimpute/for_epacts/chr${i}/chr${i}.filtered.epacts.vcf.gz --force-samples
+done
+
+for i in {1..22}; do
+  bcftools view -S SHSph2_sample_ID_list_20240722CAS.txt -Oz -o ~/vcf/chr${i}_ph2_filtered.vcf /data/SHSusers/MEGA/MEGA/MEGAimpute/for_epacts/chr${i}/chr${i}.filtered.epacts.vcf.gz --force-samples
+done
+
+#converting vcf to plink format
+#plink --vcf chr19_ph2_filtered.vcf --make-bed --out chr19_ph2
+for i in {1..22}; do
+  plink --vcf chr${i}_ph2_filtered.vcf.gz --make-bed --out chr${i}_ph2
+done
+
+#QC has been performed on data
+
+# Create script to run GWAS 
+	#plink --bfile chr19_ph2_9 --linear --pheno cleaned_phenotypes.txt --pheno-name logNMR --allow-no-sex --out 
+	
+#!/bin/bash
+
+# Create the script to run GWAS on a single chromosome
+echo '#!/bin/bash
+chromosome=$1
+echo "Running GWAS for chromosome ${chromosome}"
+plink --bfile chr${chromosome} --linear --pheno SHSph2_phenotypes_clean20240722CAS_NA_RM.csv --pheno-name logNMR --covar SHSph2_covariates_clean20240722CAS.csv --out gwas_results_chr${chromosome}
+echo "GWAS for chromosome ${chromosome} completed"' > run_gwas.sh
+
+chmod +x run_gwas.sh
+
+# Run GWAS in parallel for all chromosomes
+parallel ./run_gwas.sh ::: {1..22}
+
+# Combine results
+# Create header
+head -n 1 gwas_results_chr1.assoc > gwas_combined_results.assoc
+
+# Append results
+for i in {1..22}; do
+  tail -n +2 gwas_results_chr${i}.assoc >> gwas_combined_results.assoc
+done
+
+#Bonferoni correction
+awk 'NR==1 || $9 < 0.05' gwas_combined_results.assoc > gwas_combined_results_sig_20240722.txt
