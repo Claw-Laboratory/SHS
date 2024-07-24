@@ -4,23 +4,17 @@
 ####################################
 #$ -N filter VCF #job name
 #$ -pe smp 1 #set the processing environment and number of cores
-#$ -l h_vmem=1G #set the max memory needed. If the max is
-exceeded the job will abort #do a test and then multiple and then guess how much time/memory you'll need 
-#$ -l mem_free=1G #set the amount of RAM necessary for the job
-to run
+#$ -l h_vmem=1G #set the max memory needed. If the max is exceeded the job will abort
+#$ -l mem_free=1G #set the amount of RAM necessary for the job to run
 #$ -l h_rt=1:0:0 #set hard runtime limit hh:mm:ss. Job will
 abort once this limit is hit
-#$ -l s_rt=0:45:0 #set soft runtime limits hh:mm:ss. Job will
-send a warning once this limit is hit
+#$ -l s_rt=0:45:0 #set soft runtime limits hh:mm:ss. Job will send a warning once this limit is hit
 #$ -cwd #execute job from current working directory
 #$ -j y #join stdout and stderr
-#$ -o $JOB_NAME_$JOB_ID.out #output log file #figure out how it stopped and where to start again; write into code; for results per chromosome, not until all are done; appending a file as results are made. Don't guess correctly, don't have nothing 
-#$ -e $JOB_NAME_$JOB_ID.err #output error file #report job stats --> write in here to pull info from scheduler; r code memory. memory before and after step to calculate how much it took. Dummy set, all of samples and then multiple by the number, but make sure full number of samples
-# Uncomment the below two if you want to receive email updates
-#$ -M carissa.sherman@cuanschutz.edu #email to recieve updates about job
-status
-#$ -m bea #when to receive emails: begin (b), error (e), abort
-(a), suspend (s)
+#$ -o $JOB_NAME_$JOB_ID.out #output log file 
+#$ -e $JOB_NAME_$JOB_ID.err #output error file 
+#$ -M carissa.sherman@cuanschutz.edu #email to recieve updates about job status
+#$ -m bea #when to receive emails: begin (b), error (e), abort (a), suspend (s)
 
 #################################
 # COMMANDS FOR RUNNING THE JOB #
@@ -31,24 +25,23 @@ output_dir="vcf/"
 sample_file="SHSph2_sample_clean20240723CS.txt"
 
 # Loop over chromosomes
-for i in {22}; do #for i 1-2; 10-22; since 3-9 are not up yet #specific bash for test case
+for i in {1..22}; do 
   echo "Processing chromosome ${i}..."
 
   # Input and output file paths
   input_file="${input_dir}/chr${i}/chr${i}.filtered.epacts.vcf.gz"
   output_file="${output_dir}/chr${i}_ph2_filtered.vcf"
 
-  # Check if input file exists
-  if [ ! -f "${input_file}" ]; then
-    echo "Input file ${input_file} does not exist. Skipping chromosome ${i}."
+## Check if input file exists
+  #if [ ! -f "${input_file}" ]; then
+  # echo "Input file ${input_file} does not exist. Skipping chromosome ${i}."
     continue
-  fi
+  #fi
 
   # Ensure output directory exists
-  mkdir -p "${output_dir}"
+  #mkdir -p "${output_dir}"
 
   # Filter the VCF file
-#NOHUP  
   bcftools view -S "${sample_file}" -Oz -o "${output_file}" "${input_file}" --force-samples
 
   echo "Completed chromosome ${i}."
