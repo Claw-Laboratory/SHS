@@ -18,6 +18,7 @@
 #################################
 # COMMANDS FOR RUNNING THE JOB  #
 #################################
+
 #activate bcftools
 conda activate vcf_analysis
 
