@@ -18,11 +18,13 @@
 #################################
 # COMMANDS FOR RUNNING THE JOB  #
 #################################
+#activate bcftools
+conda activate vcf_analysis
 
 # Define input and output directories
 input_dir="/data/SHSusers/MEGA/MEGA/MEGAimpute/for_epacts"
 output_dir="vcf/"
-sample_file="SHSph2_sample_ID_list_20240722CAS_no_space.txt"
+sample_file="sample_list_na_rm_20240724.txt"
 
 # Loop over chromosomes
 for i in {1..22}; do
@@ -31,15 +33,6 @@ for i in {1..22}; do
   # Input and output file paths
   input_file="${input_dir}/chr${i}/chr${i}.filtered.epacts.vcf.gz"
   output_file="${output_dir}/chr${i}_ph2_filtered.vcf"
-
-  # Check if input file exists
-  if [ ! -f "${input_file}" ]; then
-    echo "Input file ${input_file} does not exist. Skipping chromosome ${i}."
-    continue
-  fi
-
-  # Ensure output directory exists
-  mkdir -p "${output_dir}"
 
   # Filter the VCF file
   bcftools view -S "${sample_file}" -Oz -o "${output_file}" "${input_file}" --force-samples
