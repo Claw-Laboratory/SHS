@@ -1,0 +1,45 @@
+#!/bin/bash
+####################################
+# Filtering VCF file by sample IDs #
+####################################
+#$ -N filter_VCF # Job name
+#$ -pe smp 1 # Set the processing environment and number of cores
+#$ -l h_vmem=1G # Set the max memory needed. If the max is exceeded the job will abort
+#$ -l mem_free=1G # Set the amount of RAM necessary for the job to run
+#$ -l h_rt=1:0:0 # Set hard runtime limit hh:mm:ss. Job will abort once this limit is hit
+#$ -l s_rt=0:45:0 # Set soft runtime limits hh:mm:ss. Job will send a warning once this limit is hit
+#$ -cwd # Execute job from current working directory
+#$ -j y # Join stdout and stderr
+#$ -o $JOB_NAME_$JOB_ID.out # Output log file
+#$ -e $JOB_NAME_$JOB_ID.err # Output error file
+#$ -M carissa.sherman@cuanschutz.edu # Email to receive updates about job status
+#$ -m bea # When to receive emails: begin (b), error (e), abort (a), suspend (s)
+
+#################################
+# COMMANDS FOR RUNNING THE JOB  #
+#################################
+# Load required modules
+module load bcftools
+module load plink
+
+# Define input and output directories
+input_dir="/data/SHSusers/MEGA/MEGA/MEGAimpute/for_epacts"
+output_dir="vcf"
+sample_file="SHSph2_sample_clean20240723CS.txt"
+
+# Loop over chromosomes
+for i in {1..22}; do
+  echo "Processing chromosome ${i}..."
+
+  # Input and output file paths
+  input_file="${input_dir}/chr${i}/chr${i}.filtered.epacts.vcf.gz"
+  output_file="${output_dir}/chr${i}_ph2_filtered.vcf"
+
+  # Filter the VCF file
+  bcftools view -S "${sample_file}" -Oz -o "${output_file}" "${input_file}" --force-samples
+
+  echo "Completed chromosome ${i}."
+
+  # Convert VCF to PLINK format
+  plink --vcf "${output_file}" --make-bed --out "${output_dir}/chr${i}_ph2_bed"
+done
