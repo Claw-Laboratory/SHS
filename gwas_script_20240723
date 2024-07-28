@@ -1,50 +1,52 @@
 #!/bin/bash
-########################
-# Running initial GWAS #
-########################
-#$ -N Initial_SHS_GWAS #job name
-#$ -pe smp 1 #set the processing environment and number of cores
-#$ -l h_vmem=1G #set the max memory needed. If the max is
-exceeded the job will abort
-#$ -l mem_free=1G #set the amount of RAM necessary for the job
-to run
-#$ -l h_rt=2:0:0 #set hard runtime limit hh:mm:ss. Job will
-abort once this limit is hit
-#$ -l s_rt=1:45:0 #set soft runtime limits hh:mm:ss. Job will
-send a warning once this limit is hit
-#$ -cwd #execute job from current working directory
-#$ -j y #join stdout and stderr
-#$ -o $JOB_NAME_$JOB_ID.out #output log file
-#$ -e $JOB_NAME_$JOB_ID.err #output error file
-# Uncomment the below two if you want to receive email updates
-##$ -M username@domain.com #email to recieve updates about job
-status
-##$ -m ea #when to receive emails: begin (b), error (e), abort
-(a), suspend (s)
-#################################
-# COMMANDS FOR RUNNING THE JOB #
-#################################
+####################################
+# Filtering VCF file by sample IDs #
+####################################
+#$ -N filter_VCF           # Job name
+#$ -pe smp 1               # Set the processing environment and number of cores
+#$ -l h_vmem=8G            # Set the max memory needed. If the max is exceeded the job will abort
+#$ -l mem_free=8G          # Set the amount of RAM necessary for the job to run
+#$ -l h_rt=4:0:0           # Set hard runtime limit hh:mm:ss. Job will abort once this limit is hit
+#$ -l s_rt=3:45:0          # Set soft runtime limits hh:mm:ss. Job will send a warning once this limit is hit
+#$ -cwd                    # Execute job from current working directory
+#$ -j y                    # Join stdout and stderr
+#$ -o $JOB_NAME_$JOB_ID.out # Output log file
+#$ -e $JOB_NAME_$JOB_ID.err # Output error file
+#$ -M carissa.sherman@cuanschutz.edu # Email to receive updates about job status
+#$ -m bea                  # When to receive emails: begin (b), error (e), abort (a), suspend (s)
 
-#QC has been performed on data
+#################################
+# COMMANDS FOR RUNNING THE JOB  #
+#################################
+# Activate the conda environment with PLINK installed
+source "${HOME}/miniforge3/etc/profile.d/conda.sh"
+conda activate plink_tutorial
 
-# Create script to run GWAS 
-	#plink --bfile chr19_ph2_9 --linear --pheno cleaned_phenotypes.txt --pheno-name logNMR --allow-no-sex --out 
-	
-# Create the script to run GWAS on a single chromosome
+# Define input and output directories
+input_dir="/master/csherman/SHS_GWAS/SHSph2_data/vcf/plink/"
+output_dir="results"
+
+# Create output directory if it doesn't exist
+mkdir -p ${output_dir}
+
+# Loop over chromosomes
 for i in {1..22}; do
-	echo "Running GWAS for chromosome ${i}"
-	plink --bfile chr${i} --linear --pheno SHSph2_phenotypes_clean20240722CAS_NA_RM.csv --pheno-name logNMR --covar SHSph2_covariates_clean20240722CAS.csv --out gwas_results_chr${i}
-	echo "GWAS for chromosome ${i} completed"'
-done 
+  echo "Running GWAS for chromosome ${i}"
+  plink --bfile ${input_dir}chr${i} --linear --pheno SHSph2_pheno_clean20240723CS.txt --pheno-name logNMR --covar SHSph2_covariates_clean20240723CS.txt --out ${output_dir}/gwas_results_chr${i}
+  echo "GWAS for chromosome ${i} completed"
+done
 
 # Combine results
 # Create header
-head -n 1 gwas_results_chr1.assoc > gwas_combined_results.assoc #might need to change assoc to linear here; check output from chr19 test 
+head -n 1 ${output_dir}/gwas_results_chr1.assoc.linear > ${output_dir}/gwas_combined_results.assoc.linear
 
 # Append results
 for i in {1..22}; do
-  tail -n +2 gwas_results_chr${i}.assoc >> gwas_combined_results.assoc
+  tail -n +2 ${output_dir}/gwas_results_chr${i}.assoc.linear >> ${output_dir}/gwas_combined_results.assoc.linear
 done
 
-#Bonferoni correction
-awk 'NR==1 || $9 < 0.00000005' gwas_combined_results.assoc > gwas_combined_results_sig_20240722.txt
+# Bonferroni correction
+awk 'NR==1 || $9 < 0.00000005' ${output_dir}/gwas_combined_results.assoc.linear > ${output_dir}/gwas_combined_results_sig_20240722.txt
+
+# Deactivate conda environment
+conda deactivate
