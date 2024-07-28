@@ -1,0 +1,49 @@
+#!/bin/bash
+###############################################
+# Convert filtered VCF files to PLINK format #
+###############################################
+#$ -N convert_VCF_to_PLINK   # Job name
+#$ -pe smp 1                 # Number of cores
+#$ -l h_vmem=4G              # Maximum memory needed
+#$ -l mem_free=4G            # Amount of RAM needed
+#$ -l h_rt=2:0:0             # Hard runtime limit (2 hours)
+#$ -cwd                      # Execute job from current working directory
+#$ -j y                      # Join stdout and stderr
+#$ -o $JOB_NAME_$JOB_ID.out  # Output log file
+#$ -e $JOB_NAME_$JOB_ID.err  # Error log file
+#$ -M carissa.sherman@cuanschutz.edu  # Email to receive updates
+#$ -m bea                    # Email when job begins, ends, or aborts
+
+# Set TERM variable to avoid tput error
+export TERM=dumb
+
+#################################
+# COMMANDS FOR RUNNING THE JOB  #
+#################################
+
+# Activate the conda environment with PLINK installed
+source "${HOME}/miniforge3/etc/profile.d/conda.sh"
+conda activate plink_tutorial
+
+# Define input and output directories
+output_dir="plink/"
+
+# Create output directory if it doesn't exist
+mkdir -p "${output_dir}"
+
+# Loop over chromosomes
+for i in {1..22}; do
+  echo "Converting chromosome ${i} VCF to PLINK format..."
+
+  # Input and output file paths
+  input_file="chr${i}_ph2_filtered.vcf"
+  output_prefix="${output_dir}/chr${i}"
+
+  # Convert VCF to PLINK format
+  plink --vcf "${input_file}" --make-bed --out "${output_prefix}"
+
+  echo "Completed conversion for chromosome ${i}."
+done
+
+# Deactivate conda environment
+conda deactivate
