@@ -1,26 +1,33 @@
-#!/bin/bash 
+#!/bin/bash
 ####################################
 # Filtering VCF file by sample IDs #
 ####################################
-#$ -N filter_VCF # Job name
-#$ -pe smp 1 # Set the processing environment and number of cores
-#$ -l h_vmem=1G # Set the max memory needed. If the max is exceeded the job will abort
-#$ -l mem_free=1G # Set the amount of RAM necessary for the job to run
-#$ -l h_rt=1:0:0 # Set hard runtime limit hh:mm:ss. Job will abort once this limit is hit
-#$ -l s_rt=0:45:0 # Set soft runtime limits hh:mm:ss. Job will send a warning once this limit is hit
-#$ -cwd # Execute job from current working directory
-#$ -j y # Join stdout and stderr
+#$ -N filter_VCF           # Job name
+#$ -pe smp 1               # Set the processing environment and number of cores
+#$ -l h_vmem=8G            # Set the max memory needed. If the max is exceeded the job will abort
+#$ -l mem_free=8G          # Set the amount of RAM necessary for the job to run
+#$ -l h_rt=4:0:0           # Set hard runtime limit hh:mm:ss. Job will abort once this limit is hit
+#$ -l s_rt=3:45:0          # Set soft runtime limits hh:mm:ss. Job will send a warning once this limit is hit
+#$ -cwd                    # Execute job from current working directory
+#$ -j y                    # Join stdout and stderr
 #$ -o $JOB_NAME_$JOB_ID.out # Output log file
 #$ -e $JOB_NAME_$JOB_ID.err # Output error file
 #$ -M carissa.sherman@cuanschutz.edu # Email to receive updates about job status
-#$ -m bea # When to receive emails: begin (b), error (e), abort (a), suspend (s)
+#$ -m bea                  # When to receive emails: begin (b), error (e), abort (a), suspend (s)
 
 #################################
 # COMMANDS FOR RUNNING THE JOB  #
 #################################
 
-#activate bcftools
+# Activate bcftools
+source "${HOME}/miniforge3/etc/profile.d/conda.sh"
 conda activate vcf_analysis
+
+# Set TERM variable
+export TERM=dumb
+
+# Limit OpenBLAS threads
+export OPENBLAS_NUM_THREADS=4
 
 # Define input and output directories
 input_dir="/data/SHSusers/MEGA/MEGA/MEGAimpute/for_epacts"
@@ -28,7 +35,7 @@ output_dir="vcf/"
 sample_file="sample_list_na_rm_20240724.txt"
 
 # Loop over chromosomes
-for i in {1..22}; do
+for i in {4..22}; do
   echo "Processing chromosome ${i}..."
 
   # Input and output file paths
@@ -40,3 +47,6 @@ for i in {1..22}; do
 
   echo "Completed chromosome ${i}."
 done
+
+# Deactivate conda env
+conda deactivate
