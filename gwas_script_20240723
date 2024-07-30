@@ -32,7 +32,7 @@ mkdir -p ${output_dir}
 # Loop over chromosomes
 for i in {1..22}; do
   echo "Running GWAS for chromosome ${i}"
-  plink --bfile ${input_dir}chr${i} --linear --pheno SHSph2_pheno_clean20240723CS.txt --pheno-name logNMR --covar SHSph2_covariates_clean20240723CS.txt --out ${output_dir}/gwas_results_chr${i}
+  plink --bfile ${input_dir}chr${i} --linear --pheno SHSph2_pheno_clean20240723CS.txt --pheno-name logNMR --covar SHSph2_covariates_clean20240723CS.txt --covar-name S2AGE b_Gender BMIcalc PC1 PC2 PC3 PC4 PC5 PC6 PC7 PC8 PC9 PC10 --allow-no-sex  --out ${output_dir}/gwas_results_chr${i}
   echo "GWAS for chromosome ${i} completed"
 done
 
