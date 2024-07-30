@@ -1,8 +1,8 @@
 #!/bin/bash
 ####################################
-# Filtering VCF file by sample IDs #
+# GWAS ANALYSIS V. 3 20240730      #
 ####################################
-#$ -N filter_VCF           # Job name
+#$ -N gwas_v3           # Job name
 #$ -pe smp 1               # Set the processing environment and number of cores
 #$ -l h_vmem=8G            # Set the max memory needed. If the max is exceeded the job will abort
 #$ -l mem_free=8G          # Set the amount of RAM necessary for the job to run
