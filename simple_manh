@@ -1,0 +1,17 @@
+#library
+library(ggmanh)
+library(SeqArray)
+
+#data
+gwas_results <- read.csv(gwas_results.csv)
+
+#chromosome column #CHR, SNP BP P
+#gwas_results$chromosome <- factor(gwas_results$CHR, c(1:22,"X"))
+
+#Manhattan Plot
+g <- manhattan_plot(x = gwas_results, pval.colname = "P", chr.colname = "CHR", pos.colname = "BP", plot.title = "Manhattan Plot", y.label = "P-values")
+g
+
+# Save the plot to a file
+ggsave("manhattan_plot.png", plot = g, width = 10, height = 6)
+
