@@ -1,3 +1,17 @@
+#installation
+if (!requireNamespace("BiocManager", quietly = TRUE)) {
+    install.packages("BiocManager")
+}
+
+# Install ggmanh from Bioconductor
+BiocManager::install("ggmanh")
+
+# Install ggplot2 from CRAN
+install.packages("ggplot2")
+
+# Install SeqArray from Bioconductor
+BiocManager::install("SeqArray")
+
 #library
 library(ggmanh)
 library(SeqArray)
