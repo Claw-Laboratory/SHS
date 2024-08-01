@@ -1,0 +1,130 @@
+suppressPackageStartupMessages({
+  library(argparse)
+  library(dplyr)
+  library(data.table)
+  library(ggplot2)
+  library(cowplot)
+  library(QCEWAS)
+})
+# Define command line arguments
+parser <- argparse::ArgumentParser(description="Script for plotting gwas results")
+parser$add_argument('--input-file', '-i',
+                    required=TRUE,
+                    help="Path to annotated gwas results data")
+parser$add_argument('--out-dir',
+                    required=TRUE,
+                    help="Path to output directory")
+parser$add_argument('--stratified',
+                    choices=c("yes", "no"),
+                    default="no",
+                    help="Results from a stratified analysis: yes or no")
+parser$add_argument("--assoc",
+                    required=TRUE,
+                    type="character",
+                    nargs=1,
+                    help="Association variable GWAS was performed with.")
+# You'll probably want to import your results file instead of using command
+# line input by replacing the below variables.
+# parse arguments
+args <- parser$parse_args() # this is only necessary for interpreting command line input.
+results <- args$input_file # read in your GWAS results here instead
+out_dir <- args$out_dir # where you want the plot output
+stratified <- args$stratified # replace with "no"
+assoc <- args$assoc # replace with the name of the phenotype used for association (used for naming plots and outfiles)
+# Read in annotated GWAS results
+gwas <- fread(gwas_results.csv)
+# Wrangle data for plotting
+# The only info necessary for plotting is the name of the SNP, Chromosome, Position, and P-value.
+# Modify the selected column names to fit your data.
+gwas <- gwas %>%
+    dplyr::select(SNP, CHR, BP, P) %>%
+    rename("P" = "P-value") %>%  # Replace the variable on the right with whatever your Pvalue column name is.
+    mutate("CHR" = as.numeric(sub("chr", "", CHR)), # The CHR values need to be numeric (can't have 'chr' in front)
+           "MAPINFO" = BP) # Replace the variable on the right with whatever your Position column name is.
+#################################################################
+#                  MANHATTAN & QQ PLOT                          #
+#################################################################
+# Calculate the cumulative position of each chromosome
+chr.pos <- gwas %>%
+  group_by(CHR) %>%
+  summarize(chr_len=max(as.numeric(MAPINFO))) %>%
+  mutate(tot=cumsum(chr_len)-chr_len) %>%
+  dplyr::select(-chr_len)
+# Add cumulative position data to results
+gwas <- left_join(gwas, chr.pos, by = "CHR") %>%
+  arrange(CHR, as.numeric(MAPINFO)) %>%
+  mutate(POS = as.numeric(MAPINFO)+tot)
+# Calculate the x-axis markers
+x_axis <- gwas %>% group_by(CHR) %>%
+  summarise(center = (max(POS) + min(POS))/2)
+# C
+manh.plot <- gwas %>%
+  filter(-log10(Pvalue)>1) %>% # Filters out some of the insignificant points for quicker plotting
+  ggplot(aes(x=POS, y=-log10(Pvalue))) +
+  geom_point(aes(color=as.factor(CHR)), alpha = 0.8, size = 2) +
+  scale_color_manual(values= rep(c("steelblue1", "steelblue4"), # Set plot colors
+                                 length.out = 23)) +
+  scale_x_continuous(label = x_axis$CHR, breaks = x_axis$center,
+                     guide = guide_axis(check.overlap = T), expand=c(0,0)) +
+  scale_y_continuous(expand = c(0,0),
+                     limits = c(1,28)) +
+  geom_hline(yintercept = -log10(0.05/nrow(gwas)), # Creates a horizontal line to show cutoff for significance
+             linetype = 'solid',
+             color = "red",
+             linewidth = 0.5) +
+  theme_bw(base_size = 16) + # Adjusts the text size of titles and labels
+  theme(legend.position="none",
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank()) +
+  labs(y= expression(-log[10]("P-value")),
+       x= "Chromosome")
+# Function for creating qq plot
+StatQQplot <- ggproto("StatQQplot", Stat,
+                      default_aes = aes(y = stat(observed), x = stat(expected)),
+                      required_aes = c("observed"),
+                      compute_group = function(data, scales, dparams = list(),
+                                               na.rm = FALSE) {
+                        observed <- data$observed#[!is.na(data$x)]
+                        N <- length(observed)
+                        ## expected
+                        expected <- sort(-log10((1:N)/N-1/(2*N)))
+                        observed <- sort(-log10(observed))
+                        data.frame(observed, expected)
+                      }
+)
+# Second part of qq plot function (I got this and the above code from somewhere on the internet)
+stat_qqplot <- function(mapping = NULL, data = NULL, geom = "point",
+                        position = "identity", na.rm = FALSE, show.legend = NA,
+                        inherit.aes = TRUE, ...) {
+  layer(
+    stat = StatQQplot, data = data, mapping = mapping, geom = geom,
+    position = position, show.legend = show.legend, inherit.aes = inherit.aes,
+    params = list(na.rm = na.rm, ...)
+  )
+}
+# Calculate the genomic inflation factor (lambda)
+lambda <- QCEWAS::P_lambda(gwas$Pvalue)
+# Create a label for the lambda value for plotting
+lambda_label <- paste0("lambda==", round(lambda, digits = 2))
+# Plot qq plot
+qq.plot <- ggplot(gwas, aes(observed= Pvalue)) +
+  stat_qqplot() +
+  geom_abline(intercept = 0, slope = 1, color = "red") +
+  theme_bw(base_size = 16) +
+  annotate("text", x=1, y=25, label = lambda_label, parse=T, size = 6)+
+  labs(y= expression(Observed ~ -log[10]("P-value")),
+      x = expression(Expected ~ -log[10]("P-value")))
+# Plot the left panel of the figure (qq plot)
+right.panel <- plot_grid(NULL, qq.plot, labels= c("B", ""), label_size = 22,
+                        ncol=1, rel_heights = c(1,5))
+# Plot both the Manhattan and QQ plot
+full.plot <- plot_grid(manh.plot, right.panel, labels = c("A", ""), ncol = 2,
+          rel_widths = c(2.5,1), label_size = 22)
+# Change filename and image type to output to fit your data
+filename <- paste0(out_dir, assoc, "_ewas_manhattan_qq_plots.jpg")
+# Export the plots
+ggsave(filename,
+      plot = full.plot,
+      width = 30,
+      height = 12,
+      units = "cm")
