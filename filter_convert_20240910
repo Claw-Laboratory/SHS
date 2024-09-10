@@ -41,7 +41,7 @@ mkdir -p "${vcf_output_dir}"
 mkdir -p "${plink_output_dir}"
 
 # Loop over chromosomes
-for i in {1..22; X}; do
+for i in {1..22} X; do
   echo "Processing chromosome ${i}..."
 
   # Input and output file paths for VCF
