@@ -1,0 +1,65 @@
+#!/bin/bash
+###############################################
+# Filter VCF files and Convert to PLINK format
+###############################################
+
+# Job settings
+#$ -N filter_and_convert_VCF_to_PLINK  # Job name
+#$ -pe smp 4                          # Number of cores
+#$ -l h_vmem=4G                       # Maximum memory needed per core
+#$ -l mem_free=4G                     # Amount of RAM needed
+#$ -l h_rt=4:0:0                      # Hard runtime limit (4 hours)
+#$ -cwd                               # Execute job from current working directory
+#$ -j y                               # Join stdout and stderr
+#$ -o $JOB_NAME_$JOB_ID.out           # Output log file
+#$ -e $JOB_NAME_$JOB_ID.err           # Error log file
+#$ -M carissa.sherman@cuanschutz.edu  # Email to receive updates
+#$ -m bea                             # Email when job begins, ends, or aborts
+
+# Set TERM variable to avoid tput error
+export TERM=dumb
+
+# Limit OpenBLAS threads
+export OPENBLAS_NUM_THREADS=4
+
+#####################################
+# COMMANDS FOR FILTERING VCF FILES  #
+#####################################
+
+# Activate the conda environment for VCF analysis
+source "${HOME}/miniforge3/etc/profile.d/conda.sh"
+conda activate vcf_analysis
+
+# Define input and output directories
+input_dir="/data/SHSusers/MEGA/MEGA/MEGAimpute/for_epacts"
+vcf_output_dir="vcf/"
+plink_output_dir="plink/"
+sample_file="sample_ids_all.txt"
+
+# Create output directories if they don't exist
+mkdir -p "${vcf_output_dir}"
+mkdir -p "${plink_output_dir}"
+
+# Loop over chromosomes
+for i in {1..22; X}; do
+  echo "Processing chromosome ${i}..."
+
+  # Input and output file paths for VCF
+  input_file="${input_dir}/chr${i}/chr${i}.filtered.epacts.vcf.gz"
+  vcf_output_file="${vcf_output_dir}/chr${i}_ph2_filtered.vcf"
+
+  # Filter the VCF file
+  bcftools view -S "${sample_file}" -Oz -o "${vcf_output_file}" "${input_file}" --force-samples
+
+  echo "Completed filtering for chromosome ${i}."
+
+  # Convert filtered VCF to PLINK format
+  echo "Converting chromosome ${i} VCF to PLINK format..."
+  plink_output_prefix="${plink_output_dir}/chr${i}"
+  plink --vcf "${vcf_output_file}" --make-bed --out "${plink_output_prefix}"
+
+  echo "Completed conversion for chromosome ${i}."
+done
+
+# Deactivate conda environment
+conda deactivate
