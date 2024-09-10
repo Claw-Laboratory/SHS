@@ -35,7 +35,7 @@ output_dir="vcf/"
 sample_file="sample_list_na_rm_20240724.txt"
 
 # Loop over chromosomes
-for i in {4..22}; do
+for i in {1..22} X; do
   echo "Processing chromosome ${i}..."
 
   # Input and output file paths
