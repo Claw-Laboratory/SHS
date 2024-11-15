@@ -10,7 +10,7 @@ params {
   regenie_test                  = 'additive'
   prune_enabled                 = true
   covariates_filename           = '/master/csherman/SHS_GWAS/REGENIE_GWAS/shs_ph2_data.txt'
-  covariates_cat_columns        =  'S2AGE, b_Gender, BMIcalc'
+  covariates_cat_columns        = 'S2AGE, b_Gender, BMIcalc'
   phenotypes_delete_missings    = true
 }
 
