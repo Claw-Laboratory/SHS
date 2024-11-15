@@ -1,8 +1,8 @@
 params {
   project                       = 'lognmr-gwas'
-  genotypes_prediction          = '/master/csherman/SHS_GWAS/REGENIE_GWAS/plink/.{bim,bed,fam}' 
-  genotypes_association         = '/master/csherman/SHS_GWAS/REGENIE_GWAS/vcf/*vcf'
-  genotypes_build               = 'hg38'
+  genotypes_prediction          = '/master/csherman/SHS_GWAS/REGENIE_GWAS/plink/chr19.{bim,bed,fam}' 
+  genotypes_association         = '/master/csherman/SHS_GWAS/REGENIE_GWAS/vcf/chr19_ph2_filtered.vcf'
+  association_build             = 'hg38'
   genotypes_association_format  = 'vcf'
   phenotypes_filename           = '/master/csherman/SHS_GWAS/REGENIE_GWAS/shs_ph2_data.txt'
   phenotypes_columns            = 'logNMR'
