@@ -1,6 +1,6 @@
 params {
   project                       = 'lognmr-gwas'
-  genotypes_prediction          = '/master/csherman/SHS_GWAS/REGENIE_GWAS/plink/allChrs.{bim,bed,fam}' #"/master/csherman/SHS_GWAS/REGENIE_GWAS/plink"
+  genotypes_prediction          = '/master/csherman/SHS_GWAS/REGENIE_GWAS/plink/.{bim,bed,fam}' #"/master/csherman/SHS_GWAS/REGENIE_GWAS/plink"
   genotypes_association         = '/master/csherman/SHS_GWAS/REGENIE_GWAS/vcf/*vcf'
   genotypes_build               = 'hg19'
   genotypes_association_format  = 'vcf'
