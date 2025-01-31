@@ -1,0 +1,37 @@
+#Installation
+conda install bioconda::gemma 
+
+#Input File Formats. 
+## 1) Genotype 2) Phenotype 3) relatedness matrix and 4) covariates (optionally)
+### PLINK files: *.bed, *.bim, *.fam with the same prefix. 
+##Phenotype file: Each line phenotype value (same order as the genotype file). 
+
+# compute Kinship matrix
+gemma -g ./example/mouse_hs1940.geno.txt.gz -p ./example/mouse_hs1940.pheno.txt \
+    -gk -o mouse_hs1940
+
+# run univariate LMM
+gemma -g ./example/mouse_hs1940.geno.txt.gz \
+    -p ./example/mouse_hs1940.pheno.txt -n 1 -a ./example/mouse_hs1940.anno.txt \
+    -k ./output/mouse_hs1940.cXX.txt -lmm -o mouse_hs1940_CD8_lmm
+
+#\-lm 1" performs Wald test, \-lm 2" performs likelihood ratio test, \-lm 3" performs score test, and \-lm 4" performs
+all the three tests 
+./gemma -bfile chr* -lm 4 -o gwas_nmr
+
+# Estimate relatedness 
+##calculating a matrix: \-gk 1" calculates the centered relatedness matrix while \-gk 2" calculates the standardized relatedness matrix; \-ble
+[prex]" species PLINK binary ped le prex;
+./gemma -bfile chr* -gk 2 -o rel_matrix
+
+#Association tests: "-n " option is employed to specify which phenotypes in the phenotype le are used for association
+tests. (The values after the \-n " option should be separated by a space.)
+
+./gemma -bfile [prefix] -k [filename] -lmm [num] -n [num1] [num2] [num3] -o [prefix]
+
+./gemma -bfile chr* -lmm4 -p [phenotype filename] -n 3 -k [kinship matrix filename] -c [covariate input file] -en [values for the input estimated parameter file] -o [result] 
+
+
+
+
+
