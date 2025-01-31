@@ -23,6 +23,7 @@ all the three tests
 ##calculating a matrix: \-gk 1" calculates the centered relatedness matrix while \-gk 2" calculates the standardized relatedness matrix; \-ble
 [prex]" species PLINK binary ped le prex;
 ./gemma -bfile chr* -gk 2 -o rel_matrix
+/master/csherman/SHS_GWAS/GWAS_NMR/plink
 
 #Association tests: "-n " option is employed to specify which phenotypes in the phenotype le are used for association
 tests. (The values after the \-n " option should be separated by a space.)
@@ -31,7 +32,12 @@ tests. (The values after the \-n " option should be separated by a space.)
 
 ./gemma -bfile chr* -lmm4 -p [phenotype filename] -n 3 -k [kinship matrix filename] -c [covariate input file] -en [values for the input estimated parameter file] -o [result] 
 
+##############################################
+# Creating related matrix
+plink --bfile mynewdata -make-grm-gz no-gz
+Relationship matrix written to plink.grm , and IDs written to plink.grm.id
 
-
+#Univariate analysis
+gemma -bfile mynewdata -p shs_ph2_data.txt -n 5 -k plink.grm -lmm 2 -maf 0.05 -o gemma_gwas -c shs_ph2_data_covar.txt -n 9, 15, 16, 17
 
 
